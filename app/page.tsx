@@ -4,10 +4,21 @@ import EventCards3D from "../components/EventCards3D";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef, useState, useEffect } from "react";
 
+// Define the Particle interface
+interface Particle {
+  id: number;
+  startX: number;
+  startY: number;
+  endX: number;
+  endY: number;
+  duration: number;
+}
+
 export default function Home() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
-  const [particles, setParticles] = useState([]);
+  // Fix: Add type annotation for particles state
+  const [particles, setParticles] = useState<Particle[]>([]);
   const heroRef = useRef(null);
   const { scrollYProgress } = useScroll();
   const scale = useTransform(scrollYProgress, [0, 1], [1, 0.8]);
@@ -26,7 +37,7 @@ export default function Home() {
     handleResize();
 
     // Generate particles after window is defined
-    const newParticles = [...Array(20)].map((_, i) => ({
+    const newParticles: Particle[] = [...Array(20)].map((_, i) => ({
       id: i,
       startX: Math.random() * window.innerWidth,
       startY: Math.random() * window.innerHeight,
@@ -41,12 +52,42 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    const handleMouseMove = (e) => {
+    const handleMouseMove = (e: MouseEvent) => {
       setMousePosition({ x: e.clientX, y: e.clientY });
     };
     window.addEventListener("mousemove", handleMouseMove);
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
+
+  // Fix: Create a new array of particles with calculated values as numbers
+  const particleElements = particles.map((particle) => {
+    // Calculate the difference as numbers
+    const xDiff = particle.endX - particle.startX;
+    const yDiff = particle.endY - particle.startY;
+    
+    return (
+      <motion.div
+        key={particle.id}
+        className="absolute w-1 h-1 bg-purple-500/20 rounded-full"
+        style={{ 
+          left: particle.startX,
+          top: particle.startY,
+        }}
+        animate={{
+          x: [0, xDiff, 0],
+          y: [0, yDiff, 0],
+          scale: [0, 1, 0],
+          opacity: [0, 1, 0]
+        }}
+        transition={{ 
+          duration: particle.duration,
+          repeat: Infinity,
+          ease: "linear",
+          times: [0, 0.5, 1]
+        }}
+      />
+    );
+  });
 
   const featuredEvents = [
     {
@@ -69,7 +110,7 @@ export default function Home() {
     },
     {
       title: "Gaming Championship",
-      image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=2070&auto=format&fit=crop",
+      image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=2071&auto=format&fit=crop",
       date: "Feb 5, 2025",
       price: "$29",
       category: "Gaming",
@@ -107,10 +148,10 @@ export default function Home() {
   ];
 
   const stats = [
-    { label: "Events Hosted", value: "500+", icon: "🎉" },
-    { label: "Happy Attendees", value: "50k+", icon: "😊" },
-    { label: "Partner Venues", value: "200+", icon: "🏛️" },
-    { label: "Cities Covered", value: "25+", icon: "🌆" }
+    { label: "Events Hosted", value: "500+", icon: "🎪" },
+    { label: "Happy Attendees", value: "50k+", icon: "🙌" },
+    { label: "Partner Venues", value: "200+", icon: "🏟️" },
+    { label: "Cities Covered", value: "25+", icon: "🌍" }
   ];
 
   return (
@@ -123,27 +164,7 @@ export default function Home() {
       {/* Floating particles - Only render on client */}
       {windowSize.width > 0 && (
         <div className="fixed inset-0 pointer-events-none">
-          {particles.map((particle) => (
-            <motion.div
-              key={particle.id}
-              className="absolute w-1 h-1 bg-purple-500/20 rounded-full"
-              style={{
-                left: particle.startX,
-                top: particle.startY,
-              }}
-              animate={{
-                x: [0, particle.endX - particle.startX],
-                y: [0, particle.endY - particle.startY],
-                scale: [0, 1, 0],
-                opacity: [0, 1, 0]
-              }}
-              transition={{
-                duration: particle.duration,
-                repeat: Infinity,
-                ease: "linear"
-              }}
-            />
-          ))}
+          {particleElements}
         </div>
       )}
 
@@ -246,7 +267,7 @@ export default function Home() {
             transition={{ duration: 2, repeat: Infinity }}
             className="inline-block px-4 py-2 bg-purple-500/20 rounded-full text-purple-400 text-sm mb-4"
           >
-            🎫 Limited Tickets Available
+            🎟️ Limited Tickets Available
           </motion.div>
           
           <h2 className="text-5xl md:text-7xl font-bold leading-tight">
@@ -273,30 +294,65 @@ export default function Home() {
               whileTap={{ scale: 0.95 }}
               className="px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full transition shadow-lg shadow-purple-600/30 font-semibold"
             >
-              Explore Now
+              🎫 Explore Now
             </motion.button>
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               className="px-8 py-4 border border-purple-500/30 rounded-full hover:bg-purple-600/10 transition"
             >
-              Watch Demo
+              ▶️ Watch Demo
             </motion.button>
           </div>
 
-          {/* Stats */}
+          {/* Main Event Categories with Images */}
+          <div className="grid grid-cols-3 gap-4 mt-12">
+            {featuredEvents.slice(0, 3).map((event, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 + index * 0.1 }}
+                whileHover={{ y: -5, scale: 1.05 }}
+                className="relative group cursor-pointer"
+              >
+                <div className="relative h-32 rounded-xl overflow-hidden">
+                  <img 
+                    src={event.image}
+                    alt={event.title}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-2">
+                    <span className="text-2xl mb-1">
+                      {event.category === "Music" && "🎵"}
+                      {event.category === "Tech" && "💻"}
+                      {event.category === "Gaming" && "🎮"}
+                    </span>
+                    <h3 className="text-sm font-bold">{event.title}</h3>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Stats with professional emojis */}
           <div className="grid grid-cols-4 gap-4 mt-8">
-            {stats.slice(0, 4).map((stat, index) => (
+            {stats.map((stat, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 + index * 0.1 }}
-                className="text-center"
+                className="text-center group cursor-pointer"
               >
-                <div className="text-2xl mb-1">{stat.icon}</div>
-                <div className="text-xl font-bold">{stat.value}</div>
-                <div className="text-xs text-gray-500">{stat.label}</div>
+                <div className="text-3xl mb-2 filter drop-shadow-lg group-hover:scale-110 transition-transform">
+                  {stat.icon}
+                </div>
+                <div className="text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                  {stat.value}
+                </div>
+                <div className="text-xs text-gray-500 mt-1">{stat.label}</div>
               </motion.div>
             ))}
           </div>
@@ -357,6 +413,9 @@ export default function Home() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
                 <div className="absolute top-4 right-4 px-3 py-1 bg-purple-600/90 backdrop-blur-sm rounded-full text-sm font-semibold">
+                  {event.category === "Music" && "🎵 "}
+                  {event.category === "Tech" && "💻 "}
+                  {event.category === "Gaming" && "🎮 "}
                   {event.category}
                 </div>
                 <div className="absolute bottom-4 left-4 flex items-center gap-2 text-sm">
@@ -425,6 +484,9 @@ export default function Home() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
                 <div className="absolute top-4 right-4 px-3 py-1 bg-purple-600/90 backdrop-blur-sm rounded-full text-sm">
+                  {event.category === "Art" && "🎨 "}
+                  {event.category === "Wellness" && "🧘 "}
+                  {event.category === "Food" && "🍳 "}
                   {event.category}
                 </div>
                 <div className="absolute bottom-4 left-4 flex items-center gap-2 text-sm">
@@ -448,7 +510,7 @@ export default function Home() {
                     whileTap={{ scale: 0.9 }}
                     className="px-5 py-2 bg-purple-600/20 rounded-full hover:bg-purple-600 transition border border-purple-500/30 text-sm"
                   >
-                    Book Now
+                    Book Now →
                   </motion.button>
                 </div>
               </div>
@@ -509,21 +571,21 @@ export default function Home() {
               className="space-y-6"
             >
               <div className="flex items-start gap-4">
-                <div className="text-4xl">🎯</div>
+                <div className="text-4xl">⚡</div>
                 <div>
                   <h3 className="text-xl font-bold mb-2">Easy Booking</h3>
                   <p className="text-gray-400">Book your favorite events in just a few clicks with our seamless platform</p>
                 </div>
               </div>
               <div className="flex items-start gap-4">
-                <div className="text-4xl">🔒</div>
+                <div className="text-4xl">🛡️</div>
                 <div>
                   <h3 className="text-xl font-bold mb-2">Secure Payments</h3>
                   <p className="text-gray-400">Your transactions are always safe and encrypted</p>
                 </div>
               </div>
               <div className="flex items-start gap-4">
-                <div className="text-4xl">🌍</div>
+                <div className="text-4xl">🤝</div>
                 <div>
                   <h3 className="text-xl font-bold mb-2">Global Community</h3>
                   <p className="text-gray-400">Join millions of event lovers worldwide</p>
@@ -574,7 +636,7 @@ export default function Home() {
             whileTap={{ scale: 0.95 }}
             className="px-12 py-5 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full text-lg font-semibold shadow-lg shadow-purple-600/30"
           >
-            Get Started Now 🚀
+            🚀 Get Started Now
           </motion.button>
         </motion.div>
       </section>
@@ -611,18 +673,18 @@ export default function Home() {
             <div className="grid md:grid-cols-2 gap-6">
               <input 
                 type="text" 
-                placeholder="Your Name"
+                placeholder="👤 Your Name"
                 className="w-full px-6 py-4 bg-black/50 border border-white/10 rounded-xl focus:border-purple-500 focus:outline-none transition"
               />
               <input 
                 type="email" 
-                placeholder="Your Email"
+                placeholder="📧 Your Email"
                 className="w-full px-6 py-4 bg-black/50 border border-white/10 rounded-xl focus:border-purple-500 focus:outline-none transition"
               />
             </div>
             <textarea 
-              rows="5"
-              placeholder="Your Message"
+              rows={5}
+              placeholder="💬 Your Message"
               className="w-full px-6 py-4 bg-black/50 border border-white/10 rounded-xl focus:border-purple-500 focus:outline-none transition"
             />
             <motion.button
@@ -630,7 +692,7 @@ export default function Home() {
               whileTap={{ scale: 0.98 }}
               className="w-full px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl font-semibold text-lg"
             >
-              Send Message ✨
+              ✨ Send Message
             </motion.button>
           </motion.form>
         </div>
