@@ -305,37 +305,6 @@ export default function Home() {
             </motion.button>
           </div>
 
-          {/* Main Event Categories with Images */}
-          <div className="grid grid-cols-3 gap-4 mt-12">
-            {featuredEvents.slice(0, 3).map((event, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 + index * 0.1 }}
-                whileHover={{ y: -5, scale: 1.05 }}
-                className="relative group cursor-pointer"
-              >
-                <div className="relative h-32 rounded-xl overflow-hidden">
-                  <img 
-                    src={event.image}
-                    alt={event.title}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
-                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-2">
-                    <span className="text-2xl mb-1">
-                      {event.category === "Music" && "🎵"}
-                      {event.category === "Tech" && "💻"}
-                      {event.category === "Gaming" && "🎮"}
-                    </span>
-                    <h3 className="text-sm font-bold">{event.title}</h3>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-
           {/* Stats with professional emojis */}
           <div className="grid grid-cols-4 gap-4 mt-8">
             {stats.map((stat, index) => (
